@@ -13,10 +13,10 @@ The module provides basic settings for API
 import os
 import uuid
 
-VERSION = (0, 1, 0)
+VERSION = (0, 2, 0)
 
 __all__ = ['API_CONFIG', 'API_NAME', 'API_VERSION', 'API_URL',
-           'API_FLAG_DEBUG']
+           'API_FLAG_DEBUG', 'API_PATH_WWW']
 __author__ = 'madkote <madkote(at)bluewin.ch>'
 __version__ = '.'.join(str(x) for x in VERSION)
 
@@ -26,6 +26,7 @@ API_SECRET_KEY = str(uuid.uuid4())
 API_VERSION = '1.0'
 API_URL = '/api/v%s/%s' % (API_VERSION, API_NAME)
 API_FLAG_DEBUG = True
+API_PATH_WWW = os.path.join(os.path.join(os.path.dirname(__file__), '..'), 'www_static')  # @IgnorePep8
 API_CONFIG = {
     'server.socket_host': '127.0.0.1',
     'server.socket_port': 5000,
@@ -49,7 +50,9 @@ API_CONFIG = {
     ],
     # NO CACHE END
     #
-    'tools.staticdir.root': os.path.join(os.path.join(os.path.dirname(__file__), '..'), 'www_static'),  # @IgnorePep8
+    "tools.staticdir.on": True,
+    "tools.staticdir.dir": API_PATH_WWW,
+    'tools.staticdir.root': API_PATH_WWW,
     'tools.sessions.on': True,
     'tools.sessions.storage_type': "ram",
     # 'tools.sessions.storage_type': "file",

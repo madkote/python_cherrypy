@@ -1,0 +1,131 @@
+<!-- mmshop.html: MIT -->
+
+<html>
+	<script language="javascript">
+		function print_date(v) {
+			var x = String(v)
+			document.write(x.substring(0, 4) + '/' + x.substring(4, 6) + '/' + x.substring(6, 8));
+    	}
+    	function print_time(v) {
+			var x = String(v)
+			document.write(x.substring(0, 2) + ':' + x.substring(2, 4));
+    	}
+    	function print_today() {
+    		var d = new Date();
+    		document.write(d.toLocaleString());
+    	}
+	</script>
+	<style>
+        .displayText{
+            font-size: 18px;
+        }
+        .tableHeader{
+            font-size: 16px;
+        }
+        #header {
+            color: white;
+            padding-top: 20px;
+            padding-bottom: 20px;
+            background-color: maroon;
+            text-align: center;
+            width: 100%;
+        }
+        table {
+            border-collapse:collapse;
+            width:100%;
+            padding: 50px;
+            background: white;
+            height: 100%;
+            /*overflow-x: hidden;*/
+            border: solid 1px black;
+        }
+        td{
+            border: 1px solid black;
+            text-align:center;
+            border:1px solid black;
+        }
+        tr.overdue td {
+            background-color: #f2dede;
+        }
+        thead, th {
+            color: white;
+            background-color: black;
+        }
+        /*
+        thead {
+            display: block;
+        }
+        tbody {
+            display: block;
+            height: 85%;
+            width: 100%;
+        }
+        img.resize{
+			width:200px;
+   			height:40px;
+		}
+        */
+    </style>
+	
+	<head>
+        <title> {{ title }} </title>
+        <meta http-equiv="refresh" content="10">
+    </head>	
+	
+	
+	<body>
+		<div id="header">
+			<img src="img/cart.svg" width="100" height="40" align="left" img/>
+			<h1>
+				{{title}}
+				---
+				<script language="JavaScript">
+	  				print_today( );
+  				</script>
+  			</h1>
+		</div>
+		<table class="table" border="1">
+            <thead>
+	            <tr>
+	                <th><div class="div120"></div></th>
+	                <th><div class="div80"><label class="tableHeader">id</label></div></th>
+	                <th><div class="div80"><label class="tableHeader">name</label></div></th>
+	                <th><div class="div100"><label class="tableHeader">expire date</label></div></th>
+	                <th><div class="div80"><label class="tableHeader">expire time</label></div></th>
+	            </tr>
+            </thead>
+            <tbody>
+            {% for item in items %}
+	            <tr>
+	            	{# set expirefl = [] #}
+	            	{% set tdcol = '' %}
+	            	{% set icoimg_expire = 'img/check.svg' %}
+	            	{% if expire[item['id']] %}
+	            		{# set _= expirefl.append(True) #}
+	            		{% set tdcol = 'bgcolor="#f2dede"'  %}
+	            		{% set icoimg_expire = 'img/exclamation-mark.svg' %}
+	            	{# else #}
+	            		{# set _= expirefl.append(False) #}
+	            	{% endif %}
+	            	
+	            	<td {{ tdcol }} ><img src="{{ icoimg_expire }}" width="30" height="30" img/></td>
+	            	<td {{ tdcol }} >{{ item['id'] }}</td>
+	                <td {{ tdcol }} >{{ item['name'] }}</td>
+	                <td {{ tdcol }} >
+	                	<script language="JavaScript">
+  							print_date( {{ item['expire'][:8] }} );
+  						</script>
+	                </td>
+	                <td {{ tdcol }} >
+	                	<script language="JavaScript">
+  							print_time( {{ item['expire'][8:] }} );
+  						</script>
+	                </td>
+	            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    <br/>
+	MMShop REST API v{{rest_api_version}}
+	</body>
+</html>

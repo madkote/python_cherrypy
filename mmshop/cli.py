@@ -18,7 +18,7 @@ import sys
 
 import mmshop
 
-VERSION = (0, 1, 0)
+VERSION = (0, 2, 0)
 
 __all__ = ['main', 'quick_start']
 __author__ = 'madkote <madkote(at)bluewin.ch>'
@@ -34,7 +34,7 @@ DESCRIPTION = 'Mickey Mouse shop web API'
 # =============================================================================
 # API SEVICE STARTER
 # =============================================================================
-def quick_start(host=None, port=None, level=None):
+def quick_start(flag_auth=None, host=None, port=None, level=None):
     '''
     Start server
     :param host: host name
@@ -44,30 +44,38 @@ def quick_start(host=None, port=None, level=None):
     #
     # logging
     if not level:
-        level = logging.WARNING
+        level = logging.DEBUG if mmshop.API_FLAG_DEBUG else logging.WARNING
     logging.basicConfig(level=level, stream=sys.stdout)
     #
     # settings
     app = mmshop.MickeyMouseShop
     script_name = mmshop.API_URL
     config = dict(mmshop.API_CONFIG)
+    flag_index = True
+    reload = mmshop.API_FLAG_DEBUG
     if host:
         config['server.socket_host'] = str(host)
     if port:
         config['server.socket_port'] = int(port)
+    if flag_auth is None:
+        flag_auth = True
+    elif not flag_auth:
+        config.pop('tools.sessions.timeout', None)
+        config.pop('tools.auth_basic.on', None)
+        config.pop('tools.auth_basic.realm', None)
+        config.pop('tools.auth_basic.checkpassword', None)
     #
     # apply configurations
     cherrypy.log.access_log.level = logging.ERROR
     if config:
         cherrypy.config.update(config)
-    #
-    # the autoreloader restarts the webserver automatically as soon
-    # as a source file has changed
-    # deactivates the autoreloader
-    # cherrypy.engine.autoreload.unsubscribe()
+    if not reload:
+        cherrypy.engine.autoreload.unsubscribe()
     #
     # run service
-    cherrypy.quickstart(root=app(), script_name=script_name, config=None)
+    cherrypy.quickstart(root=app(with_index=flag_index),
+                        script_name=script_name,
+                        config=None)
 
 
 # =============================================================================
@@ -107,12 +115,18 @@ def main(argv=None):
                             action='store',
                             default=None,
                             help='Port')
+        parser.add_argument('--no-auth',
+                            dest='flag_auth',
+                            action='store_false',
+                            default=True,
+                            help='Flag to disable authentication')
         #
         # Process arguments
         args = parser.parse_args()
         verbose = args.verbose
         host = args.host
         port = args.port
+        flag_auth = args.flag_auth
         #
         # settings
         if verbose == 0:
@@ -123,7 +137,7 @@ def main(argv=None):
             level = logging.DEBUG
         #
         # run API service
-        quick_start(host, port, level)
+        quick_start(flag_auth, host, port, level)
     except KeyboardInterrupt:
         res = 1
         print(program_name + ': ')

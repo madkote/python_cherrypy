@@ -11,42 +11,64 @@ The API implementation
 '''
 
 import cherrypy
+import datetime
+import jinja2
 import json
 import logging
 
 import mmshop
 
-VERSION = (0, 1, 0)
+VERSION = (0, 2, 0)
 
 __all__ = ['MickeyMouseShop']
 __author__ = 'madkote <madkote(at)bluewin.ch>'
 __version__ = '.'.join(str(x) for x in VERSION)
 
+# =============================================================================
+# SETTINGS
+# =============================================================================
 _DEBUG = mmshop.API_FLAG_DEBUG
+_PATH_WWW = mmshop.API_PATH_WWW
 
+EXPIRE_FORMAT = '%Y%m%d%H%M'
+
+
+# =============================================================================
+# DUMMY
+# =============================================================================
 _ITEMS = [
     {
         'id': 0,
         'name': 'cheese',
-        'price': 2.63
+        'price': 2.63,
+        'expire': '201612011545'
     },
     {
         'id': 1,
         'name': 'milk',
-        'price': 1.25
+        'price': 1.25,
+        'expire': '201712011545'
     },
     {
         'id': 2,
         'name': 'chocolate',
-        'price': 3.41
+        'price': 3.41,
+        'expire': '201812011545'
     },
 ]
 
 
+# =============================================================================
+# SERVICE
+# =============================================================================
 class MickeyMouseShop(object):
     '''
     Simple web service API
     '''
+    def __init__(self, with_index=False):
+        self.env = jinja2.Environment(loader=jinja2.FileSystemLoader(_PATH_WWW))  # @IgnorePep8
+        self.__with_index = with_index
+
     def _check_item(self, _item):
         '''
         Check / validate item
@@ -186,12 +208,28 @@ class MickeyMouseShop(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['get'])
-    @cherrypy.config(**{'tools.json_out.on': True})
     def index(self):
         '''
-        Index page
+        Index page: overview of all available items
         '''
-        return 'Welcome to Mickey Mouse shop API'
+        if not self.__with_index:
+            raise cherrypy.HTTPError(404,
+                                     'The path "%s" was not found.' %
+                                     mmshop.API_URL)
+        tmpl = self.env.get_template('mmshop.html')
+        data = {'title': 'Welcome to Mickey Mouse shop',
+                'items': self._GET_item(None, cherrypy.request),
+                'expire': {},
+                'rest_api_version': mmshop.__version__}
+        now = datetime.datetime.now()
+        for item in data['items']:
+            if 'expire' in item:
+                item_now = datetime.datetime.strptime(item['expire'],
+                                                      EXPIRE_FORMAT)
+                data['expire'][item['id']] = now >= item_now
+            else:
+                data['expire'][item['id']] = True
+        return tmpl.render(**data)
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['get', 'post', 'put'])

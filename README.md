@@ -3,6 +3,7 @@ The repository provides a ready-to-go setup with following features
 * [x] RESTfull
 * [x] Unittests
 * [x] Simple request test
+* [x] Simple HTML template with auto-refresh
 * [ ] Authentification user/password
 * [ ] Authentification token
 * [ ] Authentification token renewal
@@ -18,7 +19,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 python test_mmshop.py
 python -m mmshop -h
-python -m mmshop
+python -m mmshop [--no-auth]
 python demo.py
 deactivate
 ```

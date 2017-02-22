@@ -93,7 +93,7 @@ class _TestWebApp(unittest.TestCase):
         return response
 
 
-class TestMickeyMouseShop(_TestWebApp):
+class TestWebMickeyMouseShop(_TestWebApp):
     '''
     Basic test  for items service
     '''
@@ -119,7 +119,12 @@ class TestMickeyMouseShop(_TestWebApp):
         # data
         data = json.loads(response.read().decode())
         got = data
-        exp = {'id': 0, 'name': 'cheese', 'price': 2.63}
+        exp = {
+            'name': 'cheese',
+            'price': 2.63,
+            'id': 0,
+            'expire': '201612011545'
+        }
         self.assertTrue(got == exp,
                         'item data wrong: %s :: %s' % (got, exp))
 
@@ -167,6 +172,46 @@ class TestMickeyMouseShop(_TestWebApp):
         self.assertTrue(got == exp,
                         'stats wrong: got[%s] :: exp[%s]' % (got, exp))
 
+
+class TestMickeyMouseShop(unittest.TestCase):
+    # run tests on the service as object
+    def _cmp_dict(self, dexp, dres):
+        # basic check
+        for k, v in dexp.items():
+            if isinstance(v, dict):
+                self._cmp_dict(v, dres[k])
+            else:
+                self.assertTrue(v == dres[k],
+                                '[%s] %s != %s' % (k, v, dres[k]))
+
+    def test_100_item_get(self):
+        srv = mmshop.MickeyMouseShop()
+        res = srv._GET_item(None, None)
+        res = len(res)
+        exp = 3
+        self.assertTrue(res == exp,
+                        '%s items expected, but %s got' % (exp, res))
+
+    def test_101_item_get(self):
+        item_id = 0
+        srv = mmshop.MickeyMouseShop()
+        res = srv._GET_item(item_id, None)
+        exp = {
+            'id': 0,
+            'name': 'cheese',
+            'price': 2.63,
+            'expire': '201612011545'
+        }
+        self._cmp_dict(exp, res)
+
+    def test_110_item_update(self):
+        pass
+
+    def test_120_item_new(self):
+        pass
+
+    def test_200_stats(self):
+        pass
 
 if __name__ == "__main__":
     # :note: ignore warnings from cheroot
