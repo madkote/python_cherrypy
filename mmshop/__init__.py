@@ -15,7 +15,7 @@ from mmshop.settings import *
 from mmshop.api import *
 from mmshop.cli import *
 
-VERSION = (0, 2, 0)
+VERSION = (0, 3, 0)
 
 __all__ = []
 __author__ = 'madkote <madkote(at)bluewin.ch>'
