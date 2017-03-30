@@ -51,7 +51,7 @@ def quick_start(flag_auth=None, host=None, port=None, level=None):
     app = mmshop.MickeyMouseShop
     script_name = mmshop.API_URL
     config = dict(mmshop.API_CONFIG)
-    flag_index = True
+    flag_static = True
     reload = mmshop.API_FLAG_DEBUG
     if host:
         config['server.socket_host'] = str(host)
@@ -73,7 +73,7 @@ def quick_start(flag_auth=None, host=None, port=None, level=None):
         cherrypy.engine.autoreload.unsubscribe()
     #
     # run service
-    cherrypy.quickstart(root=app(with_index=flag_index),
+    cherrypy.quickstart(root=app(flag_static=flag_static),
                         script_name=script_name,
                         config=None)
 

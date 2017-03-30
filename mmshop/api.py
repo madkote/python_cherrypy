@@ -15,10 +15,11 @@ import datetime
 import jinja2
 import json
 import logging
+import os
 
 import mmshop
 
-VERSION = (0, 2, 0)
+VERSION = (0, 4, 0)
 
 __all__ = ['MickeyMouseShop']
 __author__ = 'madkote <madkote(at)bluewin.ch>'
@@ -31,6 +32,17 @@ _DEBUG = mmshop.API_FLAG_DEBUG
 _PATH_WWW = mmshop.API_PATH_WWW
 
 EXPIRE_FORMAT = '%Y%m%d%H%M'
+
+
+# =============================================================================
+# DECORATORS
+# =============================================================================
+def with_static(m):
+    def wrapper(self, *args, **kwargs):
+        if not self.has_static():
+            raise cherrypy.HTTPError(404)
+        return m(self, *args, **kwargs)
+    return wrapper
 
 
 # =============================================================================
@@ -65,9 +77,9 @@ class MickeyMouseShop(object):
     '''
     Simple web service API
     '''
-    def __init__(self, with_index=False):
+    def __init__(self, flag_static=False):
         self.env = jinja2.Environment(loader=jinja2.FileSystemLoader(_PATH_WWW))  # @IgnorePep8
-        self.__with_index = with_index
+        self.__flag_static = flag_static
 
     def _check_item(self, _item):
         '''
@@ -206,16 +218,11 @@ class MickeyMouseShop(object):
             raise cherrypy.HTTPError(404, 'Cannot update data: %s' % e)
         return c
 
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=['get'])
-    def index(self):
+    def _view_monitor(self, **kwargs):
         '''
-        Index page: overview of all available items
+        supported by template:
+        * fontsize
         '''
-        if not self.__with_index:
-            raise cherrypy.HTTPError(404,
-                                     'The path "%s" was not found.' %
-                                     mmshop.API_URL)
         tmpl = self.env.get_template('mmshop.html')
         data = {'title': 'Welcome to Mickey Mouse shop',
                 'items': self._GET_item(None, cherrypy.request),
@@ -229,7 +236,56 @@ class MickeyMouseShop(object):
                 data['expire'][item['id']] = now >= item_now
             else:
                 data['expire'][item['id']] = True
+        for k, v in kwargs.items():
+            data[k] = v
         return tmpl.render(**data)
+
+    def has_static(self):
+        return self.__flag_static
+
+    @cherrypy.expose
+    @cherrypy.tools.allow(methods=['get'])
+    @with_static
+    def index(self):
+        return self._view_monitor()
+
+    @cherrypy.expose
+    @cherrypy.tools.allow(methods=['get'])
+    @with_static
+    def monitor(self):
+        return self._view_monitor(fontsize='2em')
+
+    @cherrypy.expose
+    @cherrypy.tools.allow(methods=['get'])
+    def image(self, item_id):
+        '''
+        Get image for a given item by ID
+        :param item_id: The item's ID
+        :return: the image data
+        '''
+        cherrypy.response.headers['Content-Type'] = 'image/png'
+        # info
+        if _DEBUG:
+            logging.debug('')
+            logging.debug('*' * 50)
+            logging.debug('* %s' % cherrypy.request.method)
+            logging.debug('* %s <%s>' % (item_id, type(item_id)))
+        # check
+        if not item_id:
+            raise cherrypy.HTTPError(404, "Item ID is expected")
+        c = self._GET_item(item_id, cherrypy.request)
+        # load data
+        filename = os.path.join(_PATH_WWW, 'img', '%s.png' % c['name'])
+        if _DEBUG:
+            logging.debug('filename: %s' % filename)
+        if not os.path.exists(filename):
+            raise cherrypy.HTTPError(404,
+                                     "can not find item's image "
+                                     "%s : %s" %
+                                     (item_id, filename))
+        with open(filename, 'rb') as f:
+            contents = f.read()
+        return contents
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['get', 'post', 'put'])

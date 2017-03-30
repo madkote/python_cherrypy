@@ -29,7 +29,9 @@ deactivate
 http://127.0.0.1:5000/api/v1.0/mmshop/
 http://127.0.0.1:5000/api/v1.0/mmshop/item
 http://127.0.0.1:5000/api/v1.0/mmshop/item/1
+http://127.0.0.1:5000/api/v1.0/mmshop/image/0
 http://127.0.0.1:5000/api/v1.0/mmshop/stats
+http://127.0.0.1:5000/api/v1.0/mmshop/monitor
 
 curl -i -X GET http://127.0.0.1:5000/api/v1.0/mmshop/stats
 ```
@@ -42,6 +44,7 @@ curl -i -X GET http://127.0.0.1:5000/api/v1.0/mmshop/stats
    * example: http://127.0.0.1:5000/api/v1.0/mmshop/item/1/price
 * docker deployment
 * restructure the project accordingly to
+```
   |__ myproj
   |   |__ __init__.py
   |   |__ config.py
@@ -56,3 +59,4 @@ curl -i -X GET http://127.0.0.1:5000/api/v1.0/mmshop/stats
   |__ requirements.txt
   |__ setup.py
   |__ tests
+```

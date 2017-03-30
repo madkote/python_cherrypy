@@ -14,16 +14,18 @@ Demo contains following functionality:
 - add new item
 - update an item
 - get statistics
+- get image of an item
 '''
 
 import json
 import logging
+import os
 import sys
 import urllib.request
 
 import mmshop
 
-VERSION = (0, 1, 0)
+VERSION = (0, 2, 0)
 
 __all__ = []
 __author__ = 'madkote <madkote(at)bluewin.ch>'
@@ -198,6 +200,20 @@ def demo():
     data = json.loads(response.read().decode())
     logging.info(' > res: %s' % type(data))
     logging.info(' > res: %s' % data)
+    #
+    # get item image
+    logging.info('')
+    path_api = '/image/1'
+    data = None
+    header = None
+    response = get_response(url + path_api, data=data, header=header)
+    data = response.read()
+    logging.info(' > res: %s' % type(data))
+    filename = os.path.join(
+                    os.path.abspath(os.path.dirname(__file__)),
+                    'image_1.png')
+    with open(filename, 'wb') as f:
+        f.write(data)
 
 
 if __name__ == '__main__':
